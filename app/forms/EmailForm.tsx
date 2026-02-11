@@ -10,7 +10,7 @@ const EmailForm = ({ className }: { className?: string }): JSX.Element => {
     <BaseForm
       className={className}
       formMarker='mail_id'
-      formClassName='email-contact'
+      formClassName='email-contact w-80'
       icon={<EmailIcon />}
       description={
         <>

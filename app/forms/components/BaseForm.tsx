@@ -11,8 +11,6 @@ import FormInput from '../inputs/FormInput'
 import FormReCaptcha from '../inputs/FormReCaptcha'
 import ErrorMessage from './ErrorMessage'
 import Loader from './Loader'
-import FormReCaptchaEnterprise from '../inputs/FormReCaptchaEnterprise'
-import FormCaptcha from '../inputs/FormCaptcha'
 
 interface BaseFormProps {
   className?: string
@@ -136,11 +134,6 @@ const BaseForm = memo(
             {formFields?.map((field: IAttributes, index: Key | number) => {
               if (field.type === 'spam') {
                 return (
-                  // <FormCaptcha
-                  //   key={field.marker || index}
-                  //   setIsCaptcha={setIsCaptcha}
-                  //   siteKey={field.settings?.captcha.key || ''}
-                  // />
                   <FormReCaptcha
                     key={field.marker || index}
                     setToken={setToken}
@@ -148,15 +141,6 @@ const BaseForm = memo(
                     siteKey={field.settings?.captcha.key || ''}
                     setIsValid={setIsValid}
                   />
-                  // <FormReCaptchaEnterprise
-                  //   key={field.marker || index}
-                  //   token={token}
-                  //   setToken={setToken}
-                  //   setIsCaptcha={setIsCaptcha}
-                  //   siteKey={field.settings?.captcha.key || ''}
-                  //   setIsValid={setIsValid}
-                  // />
-                  // <div key={field.marker || index}></div>
                 )
               } else {
                 const ariaLabel = field.additionalFields.find(
@@ -189,7 +173,7 @@ const BaseForm = memo(
                     ariaLabel={ariaLabel || ''}
                     placeholder={placeholder || ''}
                     setFieldsData={setFieldsData}
-                    className='border border-gray-300 w-full rounded-md px-3 py-2'
+                    className='border border-gray-300 w-full rounded-3xl px-3 py-2'
                   />
                 )
               }
@@ -198,8 +182,8 @@ const BaseForm = memo(
         </div>
 
         {/* submit button */}
-        <div className='button-wrapper'>
-          <button type='submit' disabled={!canSubmit} className='submit-button primary-button border border-orange-500 w-full rounded-2xl py-1.5'>
+        <div className='button-wrapper mt-3'>
+          <button type='submit' disabled={!canSubmit} className='submit-button primary-button border border-orange-500 w-full rounded-3xl py-1.5'>
             {isLoading ? <Loader /> : submitLabel}
           </button>
         </div>

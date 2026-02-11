@@ -10,7 +10,7 @@ const PhoneForm = ({ className }: { className?: string }): JSX.Element => {
     <BaseForm
       className={className}
       formMarker='call_id'
-      formClassName='phone-contact'
+      formClassName='phone-contact w-80'
       icon={<PhoneIcon />}
       description={
         <>
