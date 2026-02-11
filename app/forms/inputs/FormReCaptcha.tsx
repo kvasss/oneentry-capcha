@@ -14,7 +14,7 @@ import { getApi } from '@/app/api/api'
  * @returns {JSX.Element}                          FormReCaptcha component.
  */
 const FormReCaptcha = ({
-  siteKey,
+  // siteKey,
   token,
   setToken,
   setIsCaptcha,
@@ -28,6 +28,7 @@ const FormReCaptcha = ({
 }): JSX.Element => {
   const { System } = getApi()
 
+  const siteKey = '6Lc6I2gsAAAAAG5dYj7AratZ-5mC2r_m5325Mo2J';
   /**
    * Sets the captcha state to true when component mounts
    */

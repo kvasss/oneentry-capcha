@@ -17,19 +17,19 @@ declare global {
  * FormCaptcha component for Google reCAPTCHA integration.
  * Dynamically loads the reCAPTCHA script and handles verification process.
  * @param   {object}            props              - Form captcha props.
+ * @param   {string} props.siteKey - Google reCAPTCHA site key.
  * @param   {Dispatch<boolean>} props.setIsCaptcha - Set captcha.
  * @returns {JSX.Element}                          FormCaptcha component.
  */
 const FormCaptcha = ({
+  siteKey,
   setIsCaptcha,
 }: {
+  siteKey: string;
   setIsCaptcha: Dispatch<boolean>;
 }): JSX.Element => {
-  /** Test key for reCAPTCHA enterprise */
-  const testKey = '6LdF4HcqAAAAAD7Mia-zF5SMzY-XjHd_SU2xr0uQ';
-
   /** Site key for Google reCAPTCHA Enterprise API */
-  const siteKey = 'AIzaSyBC4rSjMl4SspgQ2J046ZyRv1IX44v3jgc';
+  // const siteKey = '6Lc6I2gsAAAAAG5dYj7AratZ-5mC2r_m5325Mo2J';
 
   /** Effect hook to initialize captcha state. Sets the captcha state to true when component mounts */
   useEffect(() => {
@@ -43,13 +43,13 @@ const FormCaptcha = ({
     if (typeof window !== 'undefined' && window.grecaptcha?.enterprise) {
       window.grecaptcha.enterprise.ready(() => {
         window.grecaptcha?.enterprise
-          ?.execute(testKey, { action: 'homepage' })
+          ?.execute(siteKey, { action: 'homepage' })
           .then((token: string) => {
             /** Create validation object with token and site key */
             const validationObject = {
               event: {
                 token,
-                siteKey: testKey,
+                siteKey: siteKey,
               },
             };
             validateRecaptcha(validationObject);
@@ -87,7 +87,7 @@ const FormCaptcha = ({
   useEffect(() => {
     /** Create script element for reCAPTCHA */
     const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${testKey}`;
+    script.src = `https://www.google.com/recaptcha/enterprise.js?render=${siteKey}`;
     script.addEventListener('load', handleLoaded);
     document.body.appendChild(script);
 

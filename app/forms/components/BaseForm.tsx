@@ -12,6 +12,7 @@ import FormReCaptcha from '../inputs/FormReCaptcha'
 import ErrorMessage from './ErrorMessage'
 import Loader from './Loader'
 import FormReCaptchaEnterprise from '../inputs/FormReCaptchaEnterprise'
+import FormCaptcha from '../inputs/FormCaptcha'
 
 interface BaseFormProps {
   className?: string
@@ -135,6 +136,11 @@ const BaseForm = memo(
             {formFields?.map((field: IAttributes, index: Key | number) => {
               if (field.type === 'spam') {
                 return (
+                  <FormCaptcha
+                    key={field.marker || index}
+                    setIsCaptcha={setIsCaptcha}
+                    siteKey={field.settings?.captcha.key || ''}
+                  />
                   // <FormReCaptcha
                   //   key={field.marker || index}
                   //   token={token}
@@ -143,14 +149,14 @@ const BaseForm = memo(
                   //   siteKey={field.settings?.captcha.key || ''}
                   //   setIsValid={setIsValid}
                   // />
-                  <FormReCaptchaEnterprise
-                    key={field.marker || index}
-                    token={token}
-                    setToken={setToken}
-                    setIsCaptcha={setIsCaptcha}
-                    siteKey={field.settings?.captcha.key || ''}
-                    setIsValid={setIsValid}
-                  />
+                  // <FormReCaptchaEnterprise
+                  //   key={field.marker || index}
+                  //   token={token}
+                  //   setToken={setToken}
+                  //   setIsCaptcha={setIsCaptcha}
+                  //   siteKey={field.settings?.captcha.key || ''}
+                  //   setIsValid={setIsValid}
+                  // />
                   // <div key={field.marker || index}></div>
                 )
               } else {
