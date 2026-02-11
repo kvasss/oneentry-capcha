@@ -143,7 +143,7 @@ const FormInput = (field: {
   /** Calculate the actual input type */
   const type = fieldType || 'text'
 
-  const cn = field.className || 'border rounded-md px-3 py-2'
+  const cn = field.className || ''
   const placeholder = field.placeholder || localizeInfos?.title
 
   useEffect(() => {

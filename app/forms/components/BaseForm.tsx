@@ -124,7 +124,7 @@ const BaseForm = memo(
 
     return (
       <form className={formClassName + ' ' + className} onSubmit={onSubmitFormHandle}>
-        <div className='contact-info'>
+        <div className='contact-info flex flex-col gap-3'>
           {icon}
 
           {/* title */}
@@ -173,18 +173,18 @@ const BaseForm = memo(
                     listTitles={field.listTitles?.map(
                       (item: {
                         title: string
-                        value: string | number
+                        value: string | number | null
                         position: number
-                        extended: { value: string | number; type: string | number }
+                        extended: { value: string | number | null; type: string | number | null }
                       }) => ({
                         title: item.title,
-                        value: String(item.value)
+                        value: item.value !== null ? String(item.value) : ''
                       })
                     )}
                     ariaLabel={ariaLabel || ''}
                     placeholder={placeholder || ''}
                     setFieldsData={setFieldsData}
-                    className='form-input'
+                    className='border border-gray-300 w-full rounded-md px-3 py-2'
                   />
                 )
               }
@@ -194,7 +194,7 @@ const BaseForm = memo(
 
         {/* submit button */}
         <div className='button-wrapper'>
-          <button type='submit' disabled={!canSubmit} className='submit-button primary-button'>
+          <button type='submit' disabled={!canSubmit} className='submit-button primary-button border border-orange-500 w-full rounded-2xl py-1.5'>
             {isLoading ? <Loader /> : submitLabel}
           </button>
         </div>

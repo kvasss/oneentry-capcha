@@ -1,6 +1,18 @@
 import type { Dispatch, JSX } from 'react';
 import { useEffect } from 'react';
 
+// Type declaration for Google reCAPTCHA
+declare global {
+  interface Window {
+    grecaptcha?: {
+      enterprise?: {
+        ready: (callback: () => void) => void;
+        execute: (key: string, options: { action: string }) => Promise<string>;
+      };
+    };
+  }
+}
+
 /**
  * FormCaptcha component for Google reCAPTCHA integration.
  * Dynamically loads the reCAPTCHA script and handles verification process.
@@ -27,21 +39,23 @@ const FormCaptcha = ({
 
   /** Handles the loading of the reCAPTCHA script and executes the verification process */
   const handleLoaded = () => {
-    /** Wait for reCAPTCHA to be ready and execute the verification */
-    window.grecaptcha?.enterprise.ready(() => {
-      window.grecaptcha?.enterprise
-        .execute(testKey, { action: 'homepage' })
-        .then((token: string) => {
-          /** Create validation object with token and site key */
-          const validationObject = {
-            event: {
-              token,
-              siteKey: testKey,
-            },
-          };
-          validateRecaptcha(validationObject);
-        });
-    });
+    /** Check if reCAPTCHA is loaded before trying to use it */
+    if (typeof window !== 'undefined' && window.grecaptcha?.enterprise) {
+      window.grecaptcha.enterprise.ready(() => {
+        window.grecaptcha?.enterprise
+          ?.execute(testKey, { action: 'homepage' })
+          .then((token: string) => {
+            /** Create validation object with token and site key */
+            const validationObject = {
+              event: {
+                token,
+                siteKey: testKey,
+              },
+            };
+            validateRecaptcha(validationObject);
+          });
+      });
+    }
   };
 
   /**

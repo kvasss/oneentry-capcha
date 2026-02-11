@@ -1,7 +1,7 @@
 const PhoneIcon = () => {
   return (
     <svg
-      className='contact-icon'
+      className='contact-icon mx-auto'
       width='160'
       height='160'
       viewBox='0 0 160 160'
