@@ -17,8 +17,6 @@ declare global {
 
 /**
  * FormReCaptcha component for Google reCAPTCHA v3 Enterprise integration.
- * Native implementation without third-party libraries for Next.js 15.
- * Uses invisible reCAPTCHA v3 with score-based verification.
  * @param   {object}            props              - FormReCaptcha props.
  * @param   {string}            props.siteKey      - Google reCAPTCHA site key.
  * @param   {string}            props.action       - Action name for this verification.
