@@ -136,19 +136,18 @@ const BaseForm = memo(
             {formFields?.map((field: IAttributes, index: Key | number) => {
               if (field.type === 'spam') {
                 return (
-                  <FormCaptcha
-                    key={field.marker || index}
-                    setIsCaptcha={setIsCaptcha}
-                    siteKey={field.settings?.captcha.key || ''}
-                  />
-                  // <FormReCaptcha
+                  // <FormCaptcha
                   //   key={field.marker || index}
-                  //   token={token}
-                  //   setToken={setToken}
                   //   setIsCaptcha={setIsCaptcha}
                   //   siteKey={field.settings?.captcha.key || ''}
-                  //   setIsValid={setIsValid}
                   // />
+                  <FormReCaptcha
+                    key={field.marker || index}
+                    setToken={setToken}
+                    setIsCaptcha={setIsCaptcha}
+                    siteKey={field.settings?.captcha.key || ''}
+                    setIsValid={setIsValid}
+                  />
                   // <FormReCaptchaEnterprise
                   //   key={field.marker || index}
                   //   token={token}
