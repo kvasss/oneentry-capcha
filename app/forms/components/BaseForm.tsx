@@ -45,15 +45,15 @@ const BaseForm = memo(
     const [isValid, setIsValid] = useState<boolean>(false)
     const [token, setToken] = useState<string | null>(null)
 
-    // Get a fresh reCAPTCHA v3 (classic) token at submit time
+    // Get a fresh reCAPTCHA Enterprise token at submit time
     // (tokens expire ~2 minutes after issuance, and the server expects a recent one)
     const getFreshCaptchaToken = useCallback(
       async (siteKey: string, action: string): Promise<string | null> => {
-        if (typeof window === 'undefined' || !window.grecaptcha?.execute) return null
+        if (typeof window === 'undefined' || !window.grecaptcha?.enterprise) return null
         return new Promise<string | null>((resolve) => {
-          window.grecaptcha!.ready(async () => {
+          window.grecaptcha!.enterprise!.ready(async () => {
             try {
-              const fresh = await window.grecaptcha!.execute(siteKey, { action })
+              const fresh = await window.grecaptcha!.enterprise!.execute(siteKey, { action })
               resolve(fresh || null)
             } catch {
               resolve(null)
