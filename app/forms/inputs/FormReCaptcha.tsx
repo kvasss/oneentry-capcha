@@ -1,12 +1,12 @@
 import type { Dispatch, JSX } from 'react';
 import { useEffect, useRef } from 'react';
 
-import { getApi } from '@/app/api/api';
-
-// Type declaration for Google reCAPTCHA
+// Type declaration for Google reCAPTCHA (classic v3 + Enterprise)
 declare global {
   interface Window {
     grecaptcha?: {
+      ready: (callback: () => void) => void;
+      execute: (key: string, options: { action: string }) => Promise<string>;
       enterprise?: {
         ready: (callback: () => void) => void;
         execute: (key: string, options: { action: string }) => Promise<string>;
@@ -16,7 +16,7 @@ declare global {
 }
 
 /**
- * FormReCaptcha component for Google reCAPTCHA v3 Enterprise integration.
+ * FormReCaptcha component for Google reCAPTCHA v3 (classic) integration.
  * @param   {object}            props              - FormReCaptcha props.
  * @param   {string}            props.siteKey      - Google reCAPTCHA site key.
  * @param   {string}            props.action       - Action name for this verification.
@@ -38,27 +38,27 @@ const FormReCaptcha = ({
   setIsCaptcha: Dispatch<boolean>;
   setIsValid: Dispatch<boolean>;
 }): JSX.Element => {
-  const { System } = getApi();
   const scriptLoadedRef = useRef(false);
   const executedRef = useRef(false);
 
   /**
-   * Executes reCAPTCHA verification and gets token
+   * Executes reCAPTCHA verification and gets token (classic reCAPTCHA v3)
    */
   const executeRecaptcha = async () => {
     if (executedRef.current) return;
 
     try {
-      if (typeof window !== 'undefined' && window.grecaptcha?.enterprise) {
-        window.grecaptcha.enterprise.ready(async () => {
+      if (typeof window !== 'undefined' && window.grecaptcha?.execute) {
+        window.grecaptcha.ready(async () => {
           try {
-            const token = await window.grecaptcha?.enterprise?.execute(siteKey, {
+            const token = await window.grecaptcha?.execute(siteKey, {
               action,
             });
 
             if (token) {
               executedRef.current = true;
               setToken(token);
+              setIsValid(true);
             }
           } catch (error) {
             console.error('reCAPTCHA execution error:', error);
@@ -79,9 +79,14 @@ const FormReCaptcha = ({
     if (scriptLoadedRef.current) return;
 
     const loadRecaptchaScript = () => {
-      // Check if script already exists
+      // Remove any Enterprise script that may have leaked into the page (it conflicts with classic)
+      document
+        .querySelectorAll('script[src*="recaptcha/enterprise.js"]')
+        .forEach((s) => s.remove());
+
+      // Check if classic script already exists
       const existingScript = document.querySelector(
-        `script[src*="recaptcha/enterprise.js"]`
+        `script[src*="recaptcha/api.js"]`
       );
 
       if (existingScript) {
@@ -90,9 +95,9 @@ const FormReCaptcha = ({
         return;
       }
 
-      // Create and load script
+      // Create and load script (classic reCAPTCHA v3)
       const script = document.createElement('script');
-      script.src = `https://www.google.com/recaptcha/enterprise.js?render=${siteKey}`;
+      script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
       script.async = true;
       script.defer = true;
 
@@ -115,7 +120,7 @@ const FormReCaptcha = ({
     return () => {
       // Cleanup: remove script on unmount
       const script = document.querySelector(
-        `script[src*="recaptcha/enterprise.js?render=${siteKey}"]`
+        `script[src*="recaptcha/api.js?render=${siteKey}"]`
       );
       if (script) {
         script.remove();
@@ -124,47 +129,8 @@ const FormReCaptcha = ({
   }, [siteKey, setIsCaptcha, setIsValid]);
 
   /**
-   * Validates token with backend when token is received
-   */
-  useEffect(() => {
-    if (!executedRef.current) return;
-
-    const validateToken = async () => {
-      try {
-        const token = await new Promise<string>((resolve) => {
-          const checkToken = () => {
-            if (window.grecaptcha?.enterprise) {
-              window.grecaptcha.enterprise.ready(async () => {
-                const newToken = await window.grecaptcha?.enterprise?.execute(
-                  siteKey,
-                  { action }
-                );
-                if (newToken) resolve(newToken);
-              });
-            }
-          };
-          checkToken();
-        });
-
-        const data = {
-          token,
-          expectedAction: action,
-          siteKey,
-        };
-
-        const isValid = await System.validateCapcha(data);
-        setIsValid(isValid);
-      } catch (error) {
-        console.error('Token validation error:', error);
-        setIsValid(false);
-      }
-    };
-
-    validateToken();
-  }, [executedRef.current, action, siteKey, System, setIsValid]);
-
-  /**
-   * reCAPTCHA v3 is invisible, so no UI is rendered
+   * reCAPTCHA v3 is invisible, so no UI is rendered.
+   * Token verification is performed server-side by the OneEntry form-data endpoint.
    */
   return <></>;
 }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
-import type { IAttributes } from 'oneentry/dist/base/utils'
+import type { IFormAttribute } from 'oneentry/dist/forms/formsInterfaces'
 import type { FormEvent, JSX, Key, ReactNode } from 'react'
 import { memo, useCallback, useEffect, useState } from 'react'
 
@@ -38,12 +38,31 @@ const BaseForm = memo(
     const [isSuccess, setIsSuccess] = useState(false)
     // form
     const [fieldsData, setFieldsData] = useState<Record<string, any> | null>(null)
-    const [formFields, setFormFields] = useState<IAttributes[] | null>(null)
+    const [formFields, setFormFields] = useState<IFormAttribute[] | null>(null)
     const [moduleFormConfig, setModuleFormConfig] = useState<any>(null)
     // Captcha
     const [isCaptcha, setIsCaptcha] = useState<boolean>(false)
     const [isValid, setIsValid] = useState<boolean>(false)
     const [token, setToken] = useState<string | null>(null)
+
+    // Get a fresh reCAPTCHA v3 (classic) token at submit time
+    // (tokens expire ~2 minutes after issuance, and the server expects a recent one)
+    const getFreshCaptchaToken = useCallback(
+      async (siteKey: string, action: string): Promise<string | null> => {
+        if (typeof window === 'undefined' || !window.grecaptcha?.execute) return null
+        return new Promise<string | null>((resolve) => {
+          window.grecaptcha!.ready(async () => {
+            try {
+              const fresh = await window.grecaptcha!.execute(siteKey, { action })
+              resolve(fresh || null)
+            } catch {
+              resolve(null)
+            }
+          })
+        })
+      },
+      []
+    )
 
     // Fetch form data and set state
     useEffect(() => {
@@ -51,7 +70,7 @@ const BaseForm = memo(
         try {
           const response = await Forms.getFormByMarker(formMarker)
 
-          if (response) {
+          if (response && 'attributes' in response) {
             const sortedFields = response.attributes
               .slice()
               .sort((a: { position: number }, b: { position: number }) => a.position - b.position)
@@ -62,6 +81,8 @@ const BaseForm = memo(
             if (response.moduleFormConfigs && response.moduleFormConfigs.length > 0) {
               setModuleFormConfig(response.moduleFormConfigs[0])
             }
+          } else if (response && 'message' in response) {
+            setError((response as any).message || 'Failed to load form data')
           }
         } catch (err) {
           setError((err as Error).message || 'Failed to load form data')
@@ -80,9 +101,23 @@ const BaseForm = memo(
           try {
             setIsLoading(true)
             setError(null)
+
+            const spamField = formFields.find((f) => f.type === 'spam')
+            const formData = Object.values(fieldsData)
+            if (spamField) {
+              const siteKey = (spamField as any).settings?.captcha?.key || ''
+              const action = (spamField as any).settings?.captcha?.action || 'login'
+              console.log('[captcha] siteKey:', siteKey, 'action:', action, 'spam settings:', (spamField as any).settings)
+              const freshToken = siteKey ? await getFreshCaptchaToken(siteKey, action) : null
+              const tokenToSend = freshToken || token
+              if (tokenToSend) {
+                formData.push({ marker: spamField.marker, type: 'spam', value: tokenToSend })
+              }
+            }
+
             const result = await FormData.postFormsData({
               formIdentifier: formMarker,
-              formData: Object.values(fieldsData),
+              formData,
               formModuleConfigId: moduleFormConfig.id,
               moduleEntityIdentifier: moduleFormConfig.entityIdentifiers[0].id,
               replayTo: null,
@@ -104,7 +139,7 @@ const BaseForm = memo(
         }
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
-      [fieldsData, formFields, FormData, moduleFormConfig, formMarker]
+      [fieldsData, formFields, FormData, moduleFormConfig, formMarker, token, getFreshCaptchaToken]
     )
 
     const canSubmit = true
@@ -131,22 +166,26 @@ const BaseForm = memo(
 
           {/* formFields */}
           <div className='input-wrapper'>
-            {formFields?.map((field: IAttributes, index: Key | number) => {
+            {formFields?.map((field: IFormAttribute, index: Key | number) => {
               if (field.type === 'spam') {
                 return (
                   <FormReCaptcha
                     key={field.marker || index}
                     setToken={setToken}
                     setIsCaptcha={setIsCaptcha}
-                    siteKey={field.settings?.captcha.key || ''}
+                    siteKey={(field as any).settings?.captcha?.key || ''}
+                    action={(field as any).settings?.captcha?.action}
                     setIsValid={setIsValid}
                   />
                 )
               } else {
-                const ariaLabel = field.additionalFields.find(
+                const additionalFields = Array.isArray(field.additionalFields)
+                  ? field.additionalFields
+                  : []
+                const ariaLabel = additionalFields.find(
                   (el: { marker: string }) => el.marker === 'ariaLabel'
                 )?.value
-                const placeholder = field.additionalFields.find(
+                const placeholder = additionalFields.find(
                   (el: { marker: string }) => el.marker === 'placeholder'
                 )?.value
 
@@ -154,22 +193,15 @@ const BaseForm = memo(
                   <FormInput
                     key={field.marker || index}
                     index={index as number}
-                    value={field.value}
+                    value={(field as any).value}
                     marker={field.marker}
                     type={field.type}
                     localizeInfos={field.localizeInfos}
                     validators={field.validators}
-                    listTitles={field.listTitles?.map(
-                      (item: {
-                        title: string
-                        value: string | number | null
-                        position: number
-                        extended: { value: string | number | null; type: string | number | null }
-                      }) => ({
-                        title: item.title,
-                        value: item.value !== null ? String(item.value) : ''
-                      })
-                    )}
+                    listTitles={field.listTitles?.map((item) => ({
+                      title: item.title,
+                      value: item.value != null ? String(item.value as any) : ''
+                    }))}
                     ariaLabel={ariaLabel || ''}
                     placeholder={placeholder || ''}
                     setFieldsData={setFieldsData}
