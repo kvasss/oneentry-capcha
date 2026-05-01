@@ -3,7 +3,7 @@
 import type { JSX } from 'react'
 
 import BaseForm from './components/BaseForm'
-import PhoneIcon from './icons/PhoneIcon'
+import PhoneIcon from './components/icons/PhoneIcon'
 
 const PhoneForm = ({ className }: { className?: string }): JSX.Element => {
   return (

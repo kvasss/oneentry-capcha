@@ -3,7 +3,7 @@
 import type { JSX } from 'react'
 
 import BaseForm from './components/BaseForm'
-import EmailIcon from './icons/EmailIcon'
+import EmailIcon from './components/icons/EmailIcon'
 
 const EmailForm = ({ className }: { className?: string }): JSX.Element => {
   return (
